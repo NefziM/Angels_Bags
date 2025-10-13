@@ -1,0 +1,20 @@
+{
+  "name": "Angels_Bags",
+  "version": "1.0.0",
+  "description": "Site e-commerce de sacs personnalisés en perles et cristal",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "seed": "cd server && node seed.js",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+  },
+  "keywords": ["ecommerce", "mern", "react", "node", "mongodb"],
+  "author": "Votre Nom",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
