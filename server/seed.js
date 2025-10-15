@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Modèles (créez ces fichiers si nécessaire)
+// Modèles
 const Category = require('./models/Category');
 const Product = require('./models/Product');
 
@@ -32,51 +32,40 @@ const categories = [
   }
 ];
 
+// Utilisez vos produits Cloudinary corrigés
 const products = [
   {
-    name: 'Sac Perles Étoilé',
-    description: 'Magnifique sac en perles avec motif étoilé, parfait pour les soirées élégantes.',
-    price: 89.99,
-    originalPrice: 109.99,
-    images: ['/images/products/star-bag-1.jpg', '/images/products/star-bag-2.jpg'],
+    name: 'Sac à main en perles bleu',
+    description: 'Élégant et moderne, ce sac rectangulaire en perles bleu est entièrement fait à la main avec un grand souci du détail.',
+    price: 75,
+    originalPrice: 89,
+    images: [
+      "https://res.cloudinary.com/ddsvoimvr/image/upload/v1760369176/angels-bags/sac_bleu_en_perle-1_hbi8v3.jpg",
+      "https://res.cloudinary.com/ddsvoimvr/image/upload/v1760369173/angels-bags/sac_bleu_en_perle-2_fgxrvj.jpg"
+    ],
+    inStock: true,
+    stockQuantity: 10,
     customizationOptions: {
-      colors: ['Or', 'Argent', 'Rose Gold'],
-      sizes: ['Petit', 'Moyen'],
+      colors: ["Or", "Argent", "Rose Gold"],
+      sizes: ["Petit", "Moyen"],
       personalization: {
         available: true,
         maxCharacters: 15
       }
     },
     featured: true,
-    inStock: true,
-    stockQuantity: 10,
-    tags: ['soirée', 'élégant', 'perles']
+    tags: ["soirée", "élégant", "perles"]
   },
-  {
-    name: 'Pochette Cristal Lunaire',
-    description: 'Pochette scintillante ornée de cristaux Swarovski, idéale pour vos occasions spéciales.',
-    price: 129.99,
-    images: ['/images/products/crystal-clutch-1.jpg', '/images/products/crystal-clutch-2.jpg'],
-    customizationOptions: {
-      colors: ['Cristal clair', 'Cristal fumé', 'Cristal coloré'],
-      sizes: ['Unique'],
-      personalization: {
-        available: true,
-        maxCharacters: 10
-      }
-    },
-    featured: true,
-    inStock: true,
-    stockQuantity: 5,
-    tags: ['cristal', 'luxe', 'soirée']
-  }
+  // ... Ajoutez tous vos autres produits Cloudinary ici
 ];
 
 const seedDatabase = async () => {
   try {
+    console.log('🔗 Connexion à MongoDB Atlas...');
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 10000
     });
 
     console.log('🗑️  Nettoyage de la base de données...');
@@ -96,10 +85,17 @@ const seedDatabase = async () => {
     const createdProducts = await Product.insertMany(productsWithCategories);
     console.log(`✅ ${createdProducts.length} produits créés`);
 
-    console.log('🎉 Base de données remplie avec succès !');
+    console.log('🎉 Base de données Atlas remplie avec succès !');
+    console.log('📍 Base:', mongoose.connection.name);
+    console.log('🏢 Cluster:', mongoose.connection.host);
+    
     process.exit(0);
   } catch (error) {
     console.error('❌ Erreur lors du remplissage:', error);
+    console.log('💡 Conseils de dépannage:');
+    console.log('   • Vérifiez MONGODB_URI dans .env');
+    console.log('   • Vérifiez votre connexion internet');
+    console.log('   • Vérifiez Network Access dans Atlas');
     process.exit(1);
   }
 };

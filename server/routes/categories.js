@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Category = require('../models/Category');
-const Product = require('../models/Product'); // ✅ Import ajouté
+const Product = require('../models/Product');
 
 // GET all categories
 router.get('/', async (req, res) => {
@@ -24,14 +24,21 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// GET products by category slug
+// ✅ GET category and its products by slug
 router.get('/slug/:slug', async (req, res) => {
   try {
     const category = await Category.findOne({ slug: req.params.slug });
-    if (!category) return res.status(404).json({ message: 'Category not found' });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
     
     const products = await Product.find({ category: category._id }).populate('category');
-    res.json({ category, products });
+    
+    // Retourner la catégorie ET les produits
+    res.json({ 
+      category, 
+      products 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
