@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://angels-bags-7c1t.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://angels-bags-1.onrender.com/api';
 
 export const apiService = {
   // Catégories

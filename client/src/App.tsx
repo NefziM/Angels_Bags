@@ -17,7 +17,7 @@ const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
 const Register = lazy(() => import('./pages/Register'));
 
 
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://angels-bags-7c1t.onrender.com/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://angels-bags-1.onrender.com/api';
 
 interface AppContextType {
   categories: Category[];
