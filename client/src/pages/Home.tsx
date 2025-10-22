@@ -142,10 +142,20 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
   return (
     <div className="min-h-screen bg-angel-background">
       <Helmet>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
+        <script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-393HMHQQSE');
+          `}
+        </script>
+        
         <script type="application/ld+json">
           {JSON.stringify(organizationSchema)}
         </script>
-        
       </Helmet>
 
       {/* Hero Section */}

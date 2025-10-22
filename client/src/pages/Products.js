@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { apiService } from '../services/apiService';
 import { Helmet } from "react-helmet";
 
-
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -55,6 +54,7 @@ const Products = () => {
       if (sortBy === 'featured') return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
       return 0;
     });
+
   // Schema JSON-LD pour ItemList
   const itemListSchema = {
     "@context": "https://schema.org",
@@ -74,42 +74,81 @@ const Products = () => {
       }
     }))
   };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-angel-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-angel-border border-t-angel-gold mx-auto mb-4"></div>
-          <p className="text-angel-dark font-medium">Chargement de nos créations...</p>
+      <>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
+        <script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-393HMHQQSE');
+          `}
+        </script>
+        
+        <div className="min-h-screen bg-angel-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-angel-border border-t-angel-gold mx-auto mb-4"></div>
+            <p className="text-angel-dark font-medium">Chargement de nos créations...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-angel-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-angel-dark text-lg mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-angel-gold text-white px-6 py-2 rounded-lg hover:bg-primary transition-colors"
-          >
-            Réessayer
-          </button>
+      <>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
+        <script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-393HMHQQSE');
+          `}
+        </script>
+        
+        <div className="min-h-screen bg-angel-background flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-angel-dark text-lg mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-angel-gold text-white px-6 py-2 rounded-lg hover:bg-primary transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-angel-background">
-        <Helmet>
+      <Helmet>
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
+        <script>
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-393HMHQQSE');
+          `}
+        </script>
+        
         <script type="application/ld+json">
           {JSON.stringify(itemListSchema)}
         </script>
       </Helmet>
+
       {/* Hero Section */}
- <div className="bg-gradient-angel py-16">
+      <div className="bg-gradient-angel py-16">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="font-tan-pearl text-5xl text-angel-light mb-4">
