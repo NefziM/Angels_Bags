@@ -56,25 +56,27 @@ const Products = () => {
     });
 
   // Schema JSON-LD pour ItemList
-  const itemListSchema = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "itemListElement": filteredProducts.map((product, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "url": `https://angelsbags.netlify.app/product/${product._id}`,
+const itemListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": filteredProducts.map((product, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "item": {  
+      "@type": "Product",
       "name": product.name,
-      "image": product.images && product.images.length > 0 ? product.images[0] : undefined,
       "description": product.description,
-      "offers": {
+      "image": product.images && product.images.length > 0 ? product.images[0] : undefined,
+      "url": `https://angelsbags.netlify.app/product/${product._id}`,
+      "offers": {  
         "@type": "Offer",
         "priceCurrency": "TND",
         "price": product.price,
         "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
       }
-    }))
-  };
-
+    }
+  }))
+};
   if (loading) {
     return (
       <>
