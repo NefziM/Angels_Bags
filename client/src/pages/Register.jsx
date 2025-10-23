@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from "react-helmet";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -87,6 +88,55 @@ const Register = () => {
 
   return (
     <>
+      {/* === BALISES SEO OPTIMISÉES === */}
+      <Helmet>
+        {/* Title unique et descriptif */}
+        <title>Inscription - Créer un compte Angel's Bags | Sacs Perles et Cristal</title>
+        
+        {/* Meta Description optimisée */}
+        <meta 
+          name="description" 
+          content="Rejoignez Angel's Bags ✨ Créez votre compte pour accéder à nos sacs en perles et cristal faits main. Offres exclusives, programme fidélité et service personnalisé vous attendent." 
+        />
+        
+        {/* Keywords */}
+        <meta 
+          name="keywords" 
+          content="inscription Angel's Bags, créer compte sacs perles, compte client sacs cristal, rejoindre Angel's Bags, programme fidélité sacs faits main, offres exclusives sacs Tunisie" 
+        />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Inscription - Angel's Bags | Sacs Perles et Cristal Faits Main" />
+        <meta property="og:description" content="Rejoignez notre communauté et découvrez nos sacs uniques en perles et cristal faits main en Tunisie." />
+        <meta property="og:url" content="https://angelsbags.netlify.app/register" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://angelsbags.netlify.app/logo.png" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Inscription - Angel's Bags" />
+        <meta name="twitter:description" content="Rejoignez Angel's Bags pour découvrir nos sacs en perles et cristal faits main" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://angelsbags.netlify.app/register" />
+        
+        {/* Schema.org pour la page d'inscription */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Inscription - Angel's Bags",
+            "description": "Page d'inscription pour créer un compte client Angel's Bags et accéder aux sacs en perles et cristal faits main",
+            "url": "https://angelsbags.netlify.app/register",
+            "mainEntity": {
+              "@type": "Service",
+              "name": "Création de compte client",
+              "description": "Service d'inscription pour accéder aux produits et avantages Angel's Bags"
+            }
+          })}
+        </script>
+      </Helmet>
+
       {/* Google tag (gtag.js) */}
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
       <script>
@@ -101,20 +151,28 @@ const Register = () => {
       <div className="min-h-screen bg-angel-background py-12 px-4">
         <div className="container mx-auto max-w-5xl">
           
-          {/* Header */}
+          {/* === HEADER AVEC H1 OPTIMISÉ === */}
           <div className="text-center mb-8">
+            {/* H1 Principal unique */}
             <h1 className="font-tan-pearl text-4xl md:text-5xl text-primary mb-3">
-              Rejoignez Angel's Bags
+              Créer Votre Compte Angel's Bags
             </h1>
-            <p className="text-angel-dark text-lg">
-              Créez votre compte et découvrez notre collection exclusive
+            {/* Sous-titre riche en mots-clés */}
+            <p className="text-angel-dark text-lg max-w-2xl mx-auto">
+              Rejoignez notre communauté de passionnées de <strong>sacs en perles et cristal faits main</strong>. 
+              Accédez à des <strong>offres exclusives</strong> et un <strong>service personnalisé</strong>.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             
-            {/* Formulaire */}
+            {/* === FORMULAIRE D'INSCRIPTION === */}
             <div className="bg-angel-card rounded-3xl shadow-lg p-8 border border-angel-border">
+              {/* H2 pour la section formulaire */}
+              <h2 className="text-2xl font-bold text-primary mb-6">
+                Informations Personnelles
+              </h2>
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* Nom et Prénom */}
@@ -217,6 +275,7 @@ const Register = () => {
                       onChange={handleChange}
                       className="w-full pl-11 pr-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:border-angel-gold focus:ring-2 focus:ring-angel-pink transition-all"
                       placeholder="+216 XX XXX XXX"
+                      title="Numéro de téléphone tunisien"
                     />
                     <svg className="w-5 h-5 text-angel-gold absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -241,6 +300,7 @@ const Register = () => {
                           : 'border-angel-border focus:border-angel-gold focus:ring-angel-pink'
                       }`}
                       placeholder="••••••••"
+                      title="Créez un mot de passe sécurisé d'au moins 8 caractères"
                     />
                     <svg className="w-5 h-5 text-angel-gold absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -249,6 +309,7 @@ const Register = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-angel-border hover:text-angel-gold"
+                      title={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,6 +360,7 @@ const Register = () => {
                           : 'border-angel-border focus:border-angel-gold focus:ring-angel-pink'
                       }`}
                       placeholder="••••••••"
+                      title="Confirmez votre mot de passe"
                     />
                     <svg className="w-5 h-5 text-angel-gold absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -307,6 +369,7 @@ const Register = () => {
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-angel-border hover:text-angel-gold"
+                      title={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
                     >
                       {showConfirmPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,16 +402,18 @@ const Register = () => {
                       checked={formData.acceptTerms}
                       onChange={handleChange}
                       className="w-5 h-5 text-angel-gold border-2 border-angel-border rounded focus:ring-2 focus:ring-angel-pink mt-0.5"
+                      title="Accepter les conditions d'utilisation"
                     />
                     <span className="text-sm text-angel-dark">
                       J'accepte les{' '}
-                      <Link to="/terms" className="text-angel-gold hover:underline font-semibold">
+                      <Link to="/terms" className="text-angel-gold hover:underline font-semibold" title="Lire les conditions d'utilisation">
                         conditions d'utilisation
                       </Link>
                       {' '}et la{' '}
-                      <Link to="/privacy" className="text-angel-gold hover:underline font-semibold">
+                      <Link to="/privacy" className="text-angel-gold hover:underline font-semibold" title="Lire la politique de confidentialité">
                         politique de confidentialité
                       </Link>
+                      {' '}d'Angel's Bags
                     </span>
                   </label>
                   {errors.acceptTerms && (
@@ -370,6 +435,7 @@ const Register = () => {
                       ? 'bg-angel-border text-angel-dark cursor-not-allowed'
                       : 'bg-angel-gold text-angel-light hover:bg-primary hover:shadow-xl'
                   }`}
+                  title="Créer mon compte Angel's Bags"
                 >
                   {loading ? (
                     <>
@@ -384,7 +450,7 @@ const Register = () => {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                       </svg>
-                      <span>Créer mon compte</span>
+                      <span>Créer mon compte Angel's Bags</span>
                     </>
                   )}
                 </button>
@@ -393,7 +459,11 @@ const Register = () => {
                 <div className="text-center pt-4 border-t border-angel-border">
                   <p className="text-angel-dark text-sm">
                     Vous avez déjà un compte ?{' '}
-                    <Link to="/login" className="text-angel-gold hover:text-primary font-semibold hover:underline">
+                    <Link 
+                      to="/login" 
+                      className="text-angel-gold hover:text-primary font-semibold hover:underline"
+                      title="Se connecter à mon compte Angel's Bags"
+                    >
                       Se connecter
                     </Link>
                   </p>
@@ -401,17 +471,18 @@ const Register = () => {
               </form>
             </div>
 
-            {/* Informations latérales */}
+            {/* === INFORMATIONS LATÉRALES AVEC H2 OPTIMISÉ === */}
             <div className="space-y-6">
               
               {/* Avantages */}
               <div className="bg-angel-card rounded-3xl shadow-lg p-8 border border-angel-border">
-                <h3 className="font-bold text-2xl text-primary mb-6 flex items-center">
+                {/* H2 pour les avantages */}
+                <h2 className="font-bold text-2xl text-primary mb-6 flex items-center">
                   <svg className="w-8 h-8 mr-3 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
-                  Pourquoi nous rejoindre ?
-                </h3>
+                  Avantages Exclusifs Membres
+                </h2>
                 
                 <div className="space-y-4">
                   {[
@@ -421,8 +492,8 @@ const Register = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                         </svg>
                       ),
-                      title: 'Offres Exclusives',
-                      description: 'Accédez à des promotions et collections limitées réservées aux membres'
+                      title: 'Offres Exclusives Sacs Perles',
+                      description: 'Accédez à des promotions et collections limitées de sacs en perles et cristal réservées aux membres'
                     },
                     {
                       icon: (
@@ -431,7 +502,7 @@ const Register = () => {
                         </svg>
                       ),
                       title: 'Programme de Fidélité',
-                      description: 'Gagnez des points à chaque achat et bénéficiez de récompenses'
+                      description: 'Gagnez des points à chaque achat de sacs faits main et bénéficiez de récompenses exclusives'
                     },
                     {
                       icon: (
@@ -439,8 +510,8 @@ const Register = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       ),
-                      title: 'Livraison Rapide',
-                      description: 'Profitez d\'une livraison prioritaire et d\'un suivi en temps réel'
+                      title: 'Livraison Rapide Tunisie',
+                      description: 'Profitez d\'une livraison prioritaire pour vos sacs en perles et cristal partout en Tunisie'
                     },
                     {
                       icon: (
@@ -448,8 +519,8 @@ const Register = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       ),
-                      title: 'Service Personnalisé',
-                      description: 'Bénéficiez d\'un accompagnement sur mesure pour vos achats'
+                      title: 'Service Personnalisé Sacs',
+                      description: 'Bénéficiez d\'un accompagnement sur mesure pour choisir vos sacs en perles et cristal faits main'
                     }
                   ].map((item, index) => (
                     <div key={index} className="flex items-start space-x-4 p-3 rounded-xl hover:bg-angel-pink transition-colors">
@@ -457,7 +528,8 @@ const Register = () => {
                         {item.icon}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-primary mb-1">{item.title}</h4>
+                        {/* H3 pour chaque avantage */}
+                        <h3 className="font-semibold text-primary mb-1">{item.title}</h3>
                         <p className="text-sm text-angel-dark">{item.description}</p>
                       </div>
                     </div>
@@ -465,13 +537,14 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Statistiques */}
+              {/* Statistiques Communauté */}
               <div className="bg-gradient-angel rounded-3xl shadow-lg p-8 text-angel-light">
-                <h3 className="font-bold text-2xl mb-6">Notre Communauté</h3>
+                {/* H2 pour les statistiques */}
+                <h2 className="font-bold text-2xl mb-6">Notre Communauté Angel's Bags</h2>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-1">10K+</div>
-                    <div className="text-sm opacity-90">Membres actifs</div>
+                    <div className="text-sm opacity-90">Passionnées de sacs perles</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-1">4.9★</div>
@@ -479,11 +552,11 @@ const Register = () => {
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-1">24h</div>
-                    <div className="text-sm opacity-90">Support réactif</div>
+                    <div className="text-sm opacity-90">Support personnalisé</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-1">100%</div>
-                    <div className="text-sm opacity-90">Satisfait ou remboursé</div>
+                    <div className="text-sm opacity-90">Artisanat fait main</div>
                   </div>
                 </div>
               </div>

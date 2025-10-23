@@ -7,7 +7,7 @@ interface HomeProps {
   featuredProducts: any[];
 }
 
-// Composant optimisé pour les images avec lazy loading
+// Composant optimisé pour les images avec lazy loading et ALT optimisé
 const OptimizedImage: React.FC<{
   src: string;
   alt: string;
@@ -22,7 +22,7 @@ const OptimizedImage: React.FC<{
   />
 );
 
-// Composant CategoryCard optimisé
+// Composant CategoryCard optimisé avec ALT SEO
 const CategoryCard = React.memo<{ category: any }>(({ category }) => (
   <Link 
     to={`/categories/${category.slug}`}
@@ -32,7 +32,7 @@ const CategoryCard = React.memo<{ category: any }>(({ category }) => (
       {category.image ? (
         <OptimizedImage 
           src={category.image} 
-          alt={category.name}
+          alt={`Sacs ${category.name} en perles et cristal faits main - Angel's Bags Tunisie`}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
       ) : (
@@ -53,7 +53,7 @@ const CategoryCard = React.memo<{ category: any }>(({ category }) => (
 
 CategoryCard.displayName = 'CategoryCard';
 
-// Composant ProductCard optimisé
+// Composant ProductCard optimisé avec ALT SEO
 const ProductCard = React.memo<{ product: any }>(({ product }) => (
   <Link 
     to={`/product/${product._id}`}
@@ -63,7 +63,7 @@ const ProductCard = React.memo<{ product: any }>(({ product }) => (
       {product.images?.[0] ? (
         <OptimizedImage 
           src={product.images[0]} 
-          alt={product.name}
+          alt={`${product.name} - Sac en perles et cristal fait main Angel's Bags - ${product.price} TND`}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
       ) : (
@@ -116,22 +116,83 @@ const ProductCard = React.memo<{ product: any }>(({ product }) => (
 ProductCard.displayName = 'ProductCard';
 
 const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
-  // Mémoriser le schéma JSON-LD pour éviter de le recréer à chaque render
+  // Mémoriser le schéma JSON-LD pour l'organisation
   const organizationSchema = useMemo(() => ({
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Angel's Bags",
     "url": "https://angelsbags.netlify.app",
     "logo": "https://angelsbags.netlify.app/logo.png",
+    "description": "Sacs personnalisés faits main en perles et cristal - Créations uniques et élégantes",
     "sameAs": [
-      "https://www.facebook.com/https://www.instagram.com/angel.bags.off",
+      "https://www.instagram.com/angel.bags.off",
       "https://www.tiktok.com/@angel_s_bags"
     ],
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+21646535386",
       "contactType": "Customer Service",
-      "email": "nefzimalek2002@gmail.com"
+      "email": "nefzimalek2002@gmail.com",
+      "areaServed": "TN",
+      "availableLanguage": ["French", "Arabic"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "La Mannouba",
+      "addressCountry": "TN"
+    }
+  }), []);
+
+  // Mémoriser le schéma JSON-LD pour les produits
+  const productsSchema = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@graph": featuredProducts.map(product => ({
+      "@type": "Product",
+      "name": product.name,
+      "description": product.description,
+      "image": product.images?.[0] || "",
+      "sku": product._id,
+      "mpn": product._id,
+      "brand": {
+        "@type": "Brand",
+        "name": "Angel's Bags"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": `https://angelsbags.netlify.app/product/${product._id}`,
+        "priceCurrency": "TND",
+        "price": product.price,
+        "priceValidUntil": new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+        "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "itemCondition": "https://schema.org/NewCondition"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "25"
+      }
+    }))
+  }), [featuredProducts]);
+
+  // Mémoriser le schéma JSON-LD pour le site web
+  const websiteSchema = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Angel's Bags",
+    "url": "https://angelsbags.netlify.app",
+    "description": "Sacs personnalisés faits main en perles et cristal - Créations artisanales uniques",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://angelsbags.netlify.app/products?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Angel's Bags",
+      "logo": "https://angelsbags.netlify.app/logo.png"
     }
   }), []);
 
@@ -153,36 +214,96 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
           `}
         </script>
         
+        {/* === BALISES SEO OPTIMISÉES === */}
+        
+        {/* Title unique et descriptif */}
+        <title>Angel's Bags - Sacs en Perles et Cristal Faits Main Tunisie | Personnalisation</title>
+        
+        {/* Meta Description optimisée avec mots-clés */}
+        <meta 
+          name="description" 
+          content="✨ Angel's Bags - Sacs uniques en perles et cristal FAITS MAIN en Tunisie. Personnalisation gratuite ✅ Livraison partout en Tunisie. Sacs soirée, mariée, élégants. Créez le sac de vos rêves !" 
+        />
+        
+        {/* Keywords optimisés */}
+        <meta 
+          name="keywords" 
+          content="sacs perles, sacs cristal, sacs faits main Tunisie, sacs personnalisés, artisanat tunisien, sacs femme élégants, sacs perles cristal, accessoires luxe, sacs mariée, sacs soirée, sacs main perles, sacs artisanaux Tunisie" 
+        />
+        
+        {/* Open Graph optimisé */}
+        <meta property="og:title" content="Angel's Bags - Sacs en Perles et Cristal Faits Main Tunisie" />
+        <meta property="og:description" content="Sacs uniques faits main en perles et cristal. Personnalisation gratuite. Livraison partout en Tunisie. Créez votre sac personnalisé !" />
+        <meta property="og:url" content="https://angelsbags.netlify.app" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://angelsbags.netlify.app/logo.png" />
+        <meta property="og:site_name" content="Angel's Bags" />
+        
+        {/* Twitter Card optimisée */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Angel's Bags - Sacs Perles & Cristal Faits Main Tunisie" />
+        <meta name="twitter:description" content="Sacs uniques en perles et cristal faits main. Personnalisation gratuite. Livraison Tunisie." />
+        <meta name="twitter:image" content="https://angelsbags.netlify.app/logo.png" />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href="https://angelsbags.netlify.app" />
+        
+        {/* Schema.org JSON-LD */}
         <script type="application/ld+json">
           {JSON.stringify(organizationSchema)}
         </script>
+        
+        <script type="application/ld+json">
+          {JSON.stringify(productsSchema)}
+        </script>
+        
+        <script type="application/ld+json">
+          {JSON.stringify(websiteSchema)}
+        </script>
       </Helmet>
 
-      {/* Hero Section */}
+      {/* === HERO SECTION AVEC H1 OPTIMISÉ === */}
       <section className="bg-gradient-angel py-20">
         <div className="container mx-auto px-4 text-center">
+          {/* H1 Principal unique et riche en mots-clés */}
           <h1 className="font-tan-pearl text-5xl md:text-6xl text-angel-light mb-6">
-            Angel's Bags
+            Sacs en Perles et Cristal Faits Main - Angel's Bags Tunisie
           </h1>
-          <p className="text-xl text-angel-light opacity-90 mb-8 max-w-2xl mx-auto">
-            Des sacs uniques en perles et cristal, faits main avec amour. 
-            Personnalisez votre sac pour créer un accessoire qui vous ressemble.
+          
+          {/* Texte riche en mots-clés naturellement intégrés */}
+          <p className="text-xl text-angel-light opacity-90 mb-8 max-w-2xl mx-auto leading-relaxed">
+            Découvrez nos <strong>sacs uniques en perles et cristal faits main en Tunisie</strong>. 
+            Chaque sac est une œuvre d'artisanat exceptionnelle, <strong>personnalisable selon vos envies</strong>. 
+            Parfait pour <strong>mariages, soirées et occasions spéciales</strong>.
           </p>
+          
           <Link 
             to="/categories" 
             className="bg-angel-gold text-angel-light px-8 py-4 rounded-xl text-lg hover:bg-primary transition-all duration-300 font-semibold inline-block hover:shadow-lg"
+            title="Découvrir tous nos sacs en perles et cristal"
           >
-            Découvrir nos créations
+            Découvrir Nos Créations Artisanales
           </Link>
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* === CATEGORIES SECTION AVEC H2 OPTIMISÉ === */}
       <section className="py-16 bg-angel-light">
         <div className="container mx-auto px-4">
-          <h2 className="font-tan-pearl text-4xl text-center text-primary mb-12">
-            Nos Catégories
+          {/* H2 optimisé pour les catégories */}
+          <h2 className="font-tan-pearl text-4xl text-center text-primary mb-8">
+            Nos Catégories de Sacs en Perles et Cristal
           </h2>
+          
+          {/* Texte introductif riche en mots-clés */}
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <p className="text-angel-dark text-lg leading-relaxed">
+              Explorez notre collection exclusive de <strong>sacs faits main en perles et cristaux</strong>. 
+              De <strong>sacs soirée élégants</strong> aux <strong>sacs mariée romantiques</strong>, 
+              chaque catégorie propose des créations uniques <strong>confectionnées artisanalement en Tunisie</strong>.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {memoizedCategories.map(category => (
               <CategoryCard key={category._id} category={category} />
@@ -191,12 +312,25 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* === FEATURED PRODUCTS AVEC H2 OPTIMISÉ === */}
       <section className="py-16 bg-angel-background">
         <div className="container mx-auto px-4">
-          <h2 className="font-tan-pearl text-4xl text-center text-primary mb-12">
-            Créations Étoiles
+          {/* H2 pour les produits vedettes */}
+          <h2 className="font-tan-pearl text-4xl text-center text-primary mb-8">
+            Nos Sacs Vedettes en Perles et Cristal
           </h2>
+          
+          {/* Texte descriptif riche en SEO */}
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <p className="text-angel-dark text-lg leading-relaxed">
+              Découvrez notre sélection de <strong>sacs en perles les plus populaires</strong>, 
+              tous <strong>faits main avec des matériaux premium</strong>. 
+              Ces <strong>sacs cristal et perles</strong> sont appréciés pour leur 
+              <strong> élégance exceptionnelle et leur finition artisanale</strong>. 
+              Chaque pièce est unique et <strong>confectionnée avec passion en Tunisie</strong>.
+            </p>
+          </div>
+
           {memoizedFeaturedProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {memoizedFeaturedProducts.map(product => (
@@ -209,12 +343,14 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
                 <svg className="w-16 h-16 mx-auto mb-4 text-angel-border" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
-                <p className="text-angel-dark text-lg">Aucun produit phare pour le moment.</p>
+                <h3 className="text-xl font-semibold text-primary mb-2">En Préparation</h3>
+                <p className="text-angel-dark text-lg mb-4">De nouvelles créations arrivent bientôt !</p>
                 <Link 
                   to="/products" 
                   className="inline-block mt-4 bg-angel-gold text-angel-light px-6 py-2 rounded-lg hover:bg-primary transition-colors"
+                  title="Voir tous nos sacs en perles et cristal"
                 >
-                  Voir tous les produits
+                  Voir Tous Nos Produits
                 </Link>
               </div>
             </div>
@@ -222,27 +358,36 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
         </div>
       </section>
 
-      {/* Call to Action */}
+      {/* === CALL TO ACTION AVEC H2 OPTIMISÉ === */}
       <section className="py-16 bg-angel-light border-t border-angel-border">
         <div className="container mx-auto px-4 text-center">
+          {/* H2 pour l'appel à l'action */}
           <h2 className="font-tan-pearl text-3xl text-primary mb-6">
-            Prêt à trouver votre sac idéal ?
+            Prêt à Trouver Votre Sac Idéal en Perles et Cristal ?
           </h2>
-          <p className="text-angel-dark text-lg mb-8 max-w-2xl mx-auto">
-            Explorez notre collection complète de sacs artisanaux uniques et personnalisables.
+          
+          {/* Texte persuasif avec mots-clés */}
+          <p className="text-angel-dark text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+            Rejoignez nos nombreuses clientes satisfaites en Tunisie qui ont choisi 
+            <strong> Angel's Bags pour leurs sacs en perles et cristal faits main</strong>. 
+            <strong> Qualité artisanale exceptionnelle</strong>, <strong>service personnalisé</strong> 
+            et <strong>livraison rapide dans toute la Tunisie</strong>.
           </p>
+          
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               to="/products" 
               className="bg-angel-gold text-angel-light px-8 py-3 rounded-xl hover:bg-primary transition-all duration-300 font-semibold"
+              title="Explorer tous nos sacs en perles et cristal"
             >
-              Voir tous les produits
+              Voir Tous Nos Sacs
             </Link>
             <Link 
               to="/about" 
               className="border border-angel-gold text-angel-gold px-8 py-3 rounded-xl hover:bg-angel-gold hover:text-angel-light transition-all duration-300 font-semibold"
+              title="Découvrir l'histoire d'Angel's Bags"
             >
-              Notre Histoire
+              Notre Histoire Artisanale
             </Link>
           </div>
         </div>

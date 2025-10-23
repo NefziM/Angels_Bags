@@ -16,18 +16,24 @@ const Header = () => {
 
   return (
     <>
+      {/* === HEADER PRINCIPAL === */}
       <header className="bg-angel-card/95 backdrop-blur-lg shadow-sm border-b border-angel-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             
-            {/* LOGO */}
-            <Link to="/" className="flex items-center space-x-3 group flex-shrink-0">
+            {/* === LOGO AVEC BALISE TITLE OPTIMISÉE === */}
+            <Link 
+              to="/" 
+              className="flex items-center space-x-3 group flex-shrink-0"
+              title="Angel's Bags - Accueil - Sacs en Perles et Cristal Faits Main"
+            >
               <div className="flex-shrink-0 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-angel-gold to-angel-dark rounded-full blur-md opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
                 <img 
                   src={logo}
-                  alt="ANGEL'S BAGS"
+                  alt="Angel's Bags - Logo - Sacs en Perles et Cristal Faits Main Tunisie"
                   className="w-12 h-12 sm:w-14 sm:h-14 object-contain relative z-10 group-hover:scale-110 transition-transform duration-300"
+                  loading="eager" // Logo chargé en priorité
                 />
               </div>
               
@@ -36,13 +42,13 @@ const Header = () => {
                   ANGEL'S BAGS
                 </div>
                 <div className="text-[10px] text-angel-gold font-light tracking-widest uppercase">
-                  By NEFZI Malek
+                  Sacs en Perles & Cristal
                 </div>
               </div>
             </Link>
 
-            {/* Navigation Desktop */}
-            <nav className="hidden lg:flex items-center space-x-1 bg-angel-background rounded-full px-2 py-2 shadow-sm border border-angel-border">
+            {/* === NAVIGATION DESKTOP AVEC BALISES TITLE OPTIMISÉES === */}
+            <nav className="hidden lg:flex items-center space-x-1 bg-angel-background rounded-full px-2 py-2 shadow-sm border border-angel-border" aria-label="Navigation principale">
               <Link 
                 to="/" 
                 className={`px-5 py-2.5 rounded-full transition-all duration-300 font-semibold text-sm ${
@@ -50,6 +56,7 @@ const Header = () => {
                     ? 'bg-angel-card text-angel-dark shadow-md' 
                     : 'text-angel-dark hover:text-angel-gold hover:bg-angel-card/50'
                 }`}
+                title="Accueil Angel's Bags - Sacs en Perles et Cristal Faits Main"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,6 +73,7 @@ const Header = () => {
                     ? 'bg-angel-card text-angel-dark shadow-md' 
                     : 'text-angel-dark hover:text-angel-gold hover:bg-angel-card/50'
                 }`}
+                title="Collections de Sacs Angel's Bags - Par Catégories"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,6 +90,7 @@ const Header = () => {
                     ? 'bg-angel-card text-angel-dark shadow-md' 
                     : 'text-angel-dark hover:text-angel-gold hover:bg-angel-card/50'
                 }`}
+                title="Tous Nos Produits - Sacs en Perles et Cristal Angel's Bags"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,12 +107,13 @@ const Header = () => {
                     ? 'bg-angel-card text-angel-dark shadow-md' 
                     : 'text-angel-dark hover:text-angel-gold hover:bg-angel-card/50'
                 }`}
+                title="À Propos d'Angel's Bags - Notre Histoire Artisanale"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span>À Propos</span>
+                  <span>Notre Histoire</span>
                 </div>
               </Link>
 
@@ -114,6 +124,7 @@ const Header = () => {
                     ? 'bg-angel-card text-angel-dark shadow-md' 
                     : 'text-angel-dark hover:text-angel-gold hover:bg-angel-card/50'
                 }`}
+                title="Contact Angel's Bags - Service Client Tunisie"
               >
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,38 +135,46 @@ const Header = () => {
               </Link>
             </nav>
 
-            {/* Actions */}
+            {/* === ACTIONS UTILISATEUR === */}
             <div className="flex items-center space-x-2 sm:space-x-3">
               
-              {/* Recherche */}
+              {/* === BOUTON RECHERCHE AVEC TITLE OPTIMISÉ === */}
               <button 
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="p-2.5 text-angel-dark hover:text-angel-gold transition-all duration-300 rounded-full hover:bg-angel-background"
+                title="Rechercher des sacs en perles et cristal"
+                aria-label="Ouvrir la recherche"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </button>
 
-              {/* Panier */}
+              {/* === PANIER AVEC TITLE OPTIMISÉ === */}
               <Link 
                 to="/cart" 
                 className="relative p-2.5 text-angel-dark hover:text-angel-gold transition-all duration-300 rounded-full hover:bg-angel-background group"
+                title={`Mon Panier - ${getCartItemsCount()} article(s)`}
+                aria-label={`Panier contenant ${getCartItemsCount()} article(s)`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 {getCartItemsCount() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-angel-gold text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg animate-pulse">
+                  <span 
+                    className="absolute -top-1 -right-1 bg-angel-gold text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg animate-pulse"
+                    aria-label={`${getCartItemsCount()} articles dans le panier`}
+                  >
                     {getCartItemsCount()}
                   </span>
                 )}
               </Link>
               
-              {/* Bouton Connexion */}
+              {/* === BOUTON CONNEXION AVEC TITLE OPTIMISÉ === */}
               <Link 
                 to="/login" 
                 className="hidden sm:flex items-center space-x-2 bg-angel-dark text-white px-4 py-2 rounded-full hover:bg-angel-gold transition-all duration-300 font-semibold text-sm hover:scale-105"
+                title="Connexion à mon compte Angel's Bags"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -163,10 +182,12 @@ const Header = () => {
                 <span>Connexion</span>
               </Link>
 
-              {/* Menu Burger */}
+              {/* === MENU BURGER MOBILE AVEC TITLE OPTIMISÉ === */}
               <button 
                 className="lg:hidden p-2.5 text-angel-dark hover:text-angel-gold rounded-full hover:bg-angel-background transition-all duration-300"
                 onClick={() => setIsMobileMenuOpen(true)}
+                title="Ouvrir le menu de navigation mobile"
+                aria-label="Ouvrir le menu mobile"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -175,15 +196,20 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Barre de recherche expansible */}
+          {/* === BARRE DE RECHERCHE EXPANSIBLE AVEC LABEL ACCESSIBLE === */}
           {searchOpen && (
             <div className="mt-3 animate-slideDown">
               <div className="relative max-w-2xl mx-auto">
+                <label htmlFor="header-search" className="sr-only">
+                  Rechercher des sacs en perles et cristal
+                </label>
                 <input
+                  id="header-search"
                   type="text"
-                  placeholder="Rechercher un produit, une catégorie..."
+                  placeholder="Rechercher un sac, une collection, un produit..."
                   className="w-full pl-12 pr-4 py-3 bg-angel-background border-2 border-angel-border rounded-full focus:outline-none focus:border-angel-gold focus:ring-4 focus:ring-angel-gold/20 transition-all text-angel-dark placeholder-angel-dark/50"
                   autoFocus
+                  title="Rechercher dans le catalogue Angel's Bags"
                 />
                 <svg className="w-5 h-5 text-angel-gold absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -191,6 +217,8 @@ const Header = () => {
                 <button 
                   onClick={() => setSearchOpen(false)}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 text-angel-dark/50 hover:text-angel-gold"
+                  title="Fermer la recherche"
+                  aria-label="Fermer la recherche"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -202,7 +230,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Menu Mobile */}
+      {/* === MENU MOBILE === */}
       <MobileMenu 
         isOpen={isMobileMenuOpen} 
         onClose={() => setIsMobileMenuOpen(false)} 

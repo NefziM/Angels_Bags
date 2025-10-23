@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { Helmet } from 'react-helmet';
 
 type DeliveryMethod = 'delivery' | 'pickup';
 type PaymentMethod = 'whatsapp' | 'online' | 'cash';
+// En haut de ton fichier, avant ton composant
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 
 interface FormData {
   fullName: string;
@@ -14,13 +22,31 @@ interface FormData {
   postalCode: string;
   notes: string;
 }
+interface CartItem {
+  id: string;
+  quantity: number;
+  selectedColor?: string;
+  selectedSize?: string;
+  personalization?: string;
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    images?: string[];
+  };
+}
 
 const Checkout: React.FC = () => {
-  const { cart, getCartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('whatsapp');
+  const { cart, getCartTotal, clearCart } = useCart() as {
+  cart: { items: CartItem[] };
+  getCartTotal: () => number;
+  clearCart: () => void;
+};
+
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     phone: '',
@@ -84,46 +110,57 @@ const Checkout: React.FC = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation
-    if (!formData.fullName || !formData.phone) {
-      alert('Veuillez remplir les champs obligatoires');
-      return;
-    }
-    
-    if (deliveryMethod === 'delivery' && (!formData.address || !formData.city)) {
-      alert('Veuillez remplir l\'adresse de livraison');
-      return;
-    }
+  e.preventDefault();
 
-    if (paymentMethod === 'whatsapp') {
-      // Redirection vers WhatsApp
-      const whatsappNumber = '21646535386'; // Votre numéro
-      const message = formatWhatsAppMessage();
-      window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-      
-      // Vider le panier après un délai
-      setTimeout(() => {
-        clearCart();
-        navigate('/order-success');
-      }, 2000);
-    } else if (paymentMethod === 'online') {
-      // Intégration paiement en ligne (à implémenter selon votre gateway)
-      alert('Le paiement en ligne sera disponible prochainement !');
-      // TODO: Intégrer avec Stripe, PayPal, ou autre
-    } else {
-      // Paiement à la livraison
-      const message = formatWhatsAppMessage();
-      const whatsappNumber = '21646535386';
-      window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-      
-      setTimeout(() => {
-        clearCart();
-        navigate('/order-success');
-      }, 2000);
-    }
-  };
+  // Validation
+  if (!formData.fullName || !formData.phone) {
+    alert('Veuillez remplir les champs obligatoires');
+    return;
+  }
+  
+  if (deliveryMethod === 'delivery' && (!formData.address || !formData.city)) {
+    alert('Veuillez remplir l\'adresse de livraison');
+    return;
+  }
+
+  // --- EVENT GOOGLE ANALYTICS ---
+  if (window.gtag) {
+  window.gtag('event', 'purchase_attempt', {
+    method: paymentMethod, // whatsapp, cash, online
+    value: total,
+    currency: 'TND',
+    items: cart.items.map((item) => ({
+      item_name: item.product.name,
+      item_id: item.product.id,
+      price: item.product.price,
+      quantity: item.quantity
+    }))
+  });
+}
+
+
+  // Traitement commande
+  if (paymentMethod === 'whatsapp') {
+    const whatsappNumber = '21646535386';
+    const message = formatWhatsAppMessage();
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+    setTimeout(() => {
+      clearCart();
+      navigate('/order-success');
+    }, 2000);
+  } else if (paymentMethod === 'online') {
+    alert('Le paiement en ligne sera disponible prochainement !');
+  } else {
+    const whatsappNumber = '21646535386';
+    const message = formatWhatsAppMessage();
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+    setTimeout(() => {
+      clearCart();
+      navigate('/order-success');
+    }, 2000);
+  }
+};
+
 
   if (cart.items.length === 0) {
     navigate('/cart');
@@ -132,28 +169,70 @@ const Checkout: React.FC = () => {
 
   return (
     <>
-      {/* Google tag (gtag.js) */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
-      <script>
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-393HMHQQSE');
-        `}
-      </script>
-      
+      {/* === BALISES SEO OPTIMISÉES === */}
+      <Helmet>
+        <title>Finaliser Commande - Paiement Sécurisé | Angel's Bags</title>
+        
+        <meta 
+          name="description" 
+          content="🛒 Finalisez votre commande de sacs en perles et cristal faits main. Livraison Tunisie, paiement WhatsApp sécurisé. Processus simple et rapide pour vos sacs Angel's Bags." 
+        />
+        
+        <meta 
+          name="keywords" 
+          content="commander sacs perles, paiement Angel's Bags, checkout sacs cristal, livraison Tunisie, WhatsApp paiement, sacs faits main commande, finaliser achat Angel's Bags" 
+        />
+        
+        <meta property="og:title" content="Finaliser Votre Commande - Angel's Bags" />
+        <meta property="og:description" content="Finalisez votre commande de sacs en perles et cristal faits main. Paiement sécurisé et livraison en Tunisie." />
+        <meta property="og:url" content="https://angelsbags.netlify.app/checkout" />
+        <meta property="og:type" content="website" />
+        
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Finaliser Commande - Angel's Bags" />
+        <meta name="twitter:description" content="Passez commande de vos sacs en perles et cristal faits main" />
+        
+        <link rel="canonical" href="https://angelsbags.netlify.app/checkout" />
+        
+        {/* Schema.org pour CheckoutPage */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CheckoutPage",
+            "name": "Finaliser la Commande - Angel's Bags",
+            "description": "Page de finalisation de commande pour les sacs en perles et cristal faits main",
+            "url": "https://angelsbags.netlify.app/checkout",
+            "potentialAction": {
+              "@type": "OrderAction",
+              "target": "https://angelsbags.netlify.app/order-success"
+            }
+          })}
+        </script>
+      </Helmet>
+
       <div className="min-h-screen bg-angel-background py-8">
         <div className="container mx-auto px-4">
-          <h1 className="font-tan-pearl text-4xl text-primary mb-8">Finaliser la commande</h1>
+          {/* === H1 OPTIMISÉ === */}
+          <h1 className="font-tan-pearl text-4xl text-primary mb-2">
+            Finaliser Votre Commande
+          </h1>
+          <p className="text-angel-dark text-lg mb-8 max-w-3xl">
+            Complétez vos informations pour recevoir vos <strong>sacs en perles et cristal faits main</strong>. 
+            Processus sécurisé et confirmation rapide par WhatsApp.
+          </p>
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Formulaire principal */}
+            {/* === FORMULAIRE PRINCIPAL === */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* Informations personnelles */}
+              {/* === INFORMATIONS PERSONNELLES AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
-                <h2 className="text-xl font-semibold text-primary mb-4">Informations personnelles</h2>
+                <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
+                  <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  Informations Personnelles
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-primary mb-2">
@@ -164,8 +243,9 @@ const Checkout: React.FC = () => {
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
                       required
+                      title="Entrez votre nom complet"
                     />
                   </div>
                   <div>
@@ -177,45 +257,53 @@ const Checkout: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
                       required
+                      title="Entrez votre numéro de téléphone"
                     />
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-primary mb-2">
-                      Email
+                      Email (optionnel)
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                      className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
+                      title="Entrez votre adresse email pour le suivi"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Mode de livraison */}
+              {/* === MODE DE LIVRAISON AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
-                <h2 className="text-xl font-semibold text-primary mb-4">Mode de livraison</h2>
+                <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
+                  <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                  Mode de Livraison
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('delivery')}
-                    className={`p-4 border-2 rounded-xl transition-all ${
+                    className={`p-4 border-2 rounded-xl transition-all text-left ${
                       deliveryMethod === 'delivery'
-                        ? 'border-angel-gold bg-angel-pink'
-                        : 'border-angel-border hover:border-angel-gold'
+                        ? 'border-angel-gold bg-angel-pink shadow-md'
+                        : 'border-angel-border hover:border-angel-gold hover:shadow-sm'
                     }`}
+                    title="Choisir la livraison à domicile partout en Tunisie"
                   >
                     <div className="flex items-center space-x-3">
                       <svg className="w-6 h-6 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
                       <div className="text-left">
-                        <div className="font-semibold text-primary">Livraison à domicile</div>
-                        <div className="text-sm text-angel-dark">7 TND</div>
+                        <div className="font-semibold text-primary">Livraison à Domicile</div>
+                        <div className="text-sm text-angel-dark">7 TND - Partout en Tunisie</div>
                       </div>
                     </div>
                   </button>
@@ -223,19 +311,20 @@ const Checkout: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setDeliveryMethod('pickup')}
-                    className={`p-4 border-2 rounded-xl transition-all ${
+                    className={`p-4 border-2 rounded-xl transition-all text-left ${
                       deliveryMethod === 'pickup'
-                        ? 'border-angel-gold bg-angel-pink'
-                        : 'border-angel-border hover:border-angel-gold'
+                        ? 'border-angel-gold bg-angel-pink shadow-md'
+                        : 'border-angel-border hover:border-angel-gold hover:shadow-sm'
                     }`}
+                    title="Retirer votre commande en magasin à La Mannouba"
                   >
                     <div className="flex items-center space-x-3">
                       <svg className="w-6 h-6 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
                       <div className="text-left">
-                        <div className="font-semibold text-primary">Retrait en magasin</div>
-                        <div className="text-sm text-angel-dark">Gratuit</div>
+                        <div className="font-semibold text-primary">Retrait en Magasin</div>
+                        <div className="text-sm text-angel-dark">Gratuit - La Mannouba</div>
                       </div>
                     </div>
                   </button>
@@ -243,17 +332,20 @@ const Checkout: React.FC = () => {
 
                 {deliveryMethod === 'delivery' && (
                   <div className="mt-4 grid grid-cols-1 gap-4">
+                    <h3 className="font-semibold text-primary text-lg mb-2">Adresse de Livraison</h3>
                     <div>
                       <label className="block text-sm font-semibold text-primary mb-2">
-                        Adresse <span className="text-red-500">*</span>
+                        Adresse complète <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         name="address"
                         value={formData.address}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                        className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
                         required={deliveryMethod === 'delivery'}
+                        placeholder="Rue, numéro, appartement..."
+                        title="Entrez votre adresse complète de livraison"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -266,20 +358,24 @@ const Checkout: React.FC = () => {
                           name="city"
                           value={formData.city}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                          className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
                           required={deliveryMethod === 'delivery'}
+                          placeholder="Ex: Tunis, Sousse, Sfax..."
+                          title="Entrez votre ville"
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-primary mb-2">
-                          Code postal
+                          Code postal (optionnel)
                         </label>
                         <input
                           type="text"
                           name="postalCode"
                           value={formData.postalCode}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold"
+                          className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all"
+                          placeholder="Ex: 1000"
+                          title="Entrez votre code postal"
                         />
                       </div>
                     </div>
@@ -288,33 +384,40 @@ const Checkout: React.FC = () => {
 
                 {deliveryMethod === 'pickup' && (
                   <div className="mt-4 p-4 bg-angel-light rounded-xl border border-angel-border">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 text-angel-gold flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h3 className="font-semibold text-primary mb-3 flex items-center">
+                      <svg className="w-5 h-5 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <div>
-                        <div className="font-semibold text-primary">Notre magasin</div>
-                        <div className="text-sm text-angel-dark">La Mannouba, Tunis</div>
-                        <div className="text-sm text-angel-dark">Horaires: Lun-Sam 9h-18h</div>
-                      </div>
+                      Point de Retrait Angel's Bags
+                    </h3>
+                    <div className="text-sm text-angel-dark space-y-1">
+                      <p><strong>Adresse:</strong> La Mannouba, Tunis, Tunisie</p>
+                      <p><strong>Horaires:</strong> Lundi - Samedi, 9h00 - 18h00</p>
+                      <p><strong>Contact:</strong> +216 46 535 386</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Mode de paiement */}
+              {/* === MODE DE PAIEMENT AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
-                <h2 className="text-xl font-semibold text-primary mb-4">Mode de paiement</h2>
+                <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
+                  <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                  Mode de Paiement
+                </h2>
                 <div className="space-y-3">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('whatsapp')}
                     className={`w-full p-4 border-2 rounded-xl transition-all text-left ${
                       paymentMethod === 'whatsapp'
-                        ? 'border-angel-gold bg-angel-pink'
-                        : 'border-angel-border hover:border-angel-gold'
+                        ? 'border-angel-gold bg-angel-pink shadow-md'
+                        : 'border-angel-border hover:border-angel-gold hover:shadow-sm'
                     }`}
+                    title="Commander via WhatsApp - Confirmation rapide"
                   >
                     <div className="flex items-center space-x-3">
                       <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 24 24">
@@ -322,7 +425,7 @@ const Checkout: React.FC = () => {
                       </svg>
                       <div>
                         <div className="font-semibold text-primary">Commander par WhatsApp</div>
-                        <div className="text-sm text-angel-dark">Confirmation rapide et paiement flexible</div>
+                        <div className="text-sm text-angel-dark">Confirmation rapide - Paiement flexible</div>
                       </div>
                     </div>
                   </button>
@@ -332,16 +435,17 @@ const Checkout: React.FC = () => {
                     onClick={() => setPaymentMethod('cash')}
                     className={`w-full p-4 border-2 rounded-xl transition-all text-left ${
                       paymentMethod === 'cash'
-                        ? 'border-angel-gold bg-angel-pink'
-                        : 'border-angel-border hover:border-angel-gold'
+                        ? 'border-angel-gold bg-angel-pink shadow-md'
+                        : 'border-angel-border hover:border-angel-gold hover:shadow-sm'
                     }`}
+                    title="Payer en espèces à la livraison"
                   >
                     <div className="flex items-center space-x-3">
                       <svg className="w-6 h-6 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
                       <div>
-                        <div className="font-semibold text-primary">Paiement à la livraison</div>
+                        <div className="font-semibold text-primary">Paiement à la Livraison</div>
                         <div className="text-sm text-angel-dark">Payez en espèces lors de la réception</div>
                       </div>
                     </div>
@@ -352,58 +456,75 @@ const Checkout: React.FC = () => {
                     onClick={() => setPaymentMethod('online')}
                     className={`w-full p-4 border-2 rounded-xl transition-all text-left ${
                       paymentMethod === 'online'
-                        ? 'border-angel-gold bg-angel-pink'
-                        : 'border-angel-border hover:border-angel-gold'
+                        ? 'border-angel-gold bg-angel-pink shadow-md'
+                        : 'border-angel-border hover:border-angel-gold hover:shadow-sm'
                     }`}
+                    title="Paiement en ligne sécurisé (Bientôt disponible)"
                   >
                     <div className="flex items-center space-x-3">
                       <svg className="w-6 h-6 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
                       <div>
-                        <div className="font-semibold text-primary">Paiement en ligne</div>
-                        <div className="text-sm text-angel-dark">Carte bancaire sécurisée (Bientôt disponible)</div>
+                        <div className="font-semibold text-primary">Paiement en Ligne</div>
+                        <div className="text-sm text-angel-dark">Carte bancaire sécurisée - Bientôt disponible</div>
                       </div>
                     </div>
                   </button>
                 </div>
               </div>
 
-              {/* Notes */}
+              {/* === NOTES AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
-                <h2 className="text-xl font-semibold text-primary mb-4">Notes (optionnel)</h2>
+                <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
+                  <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Instructions Spéciales (optionnel)
+                </h2>
                 <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
                   rows={4}
-                  className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold resize-none"
-                  placeholder="Instructions spéciales pour votre commande..."
+                  className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold transition-all resize-none"
+                  placeholder="Précisions sur la livraison, demandes spéciales pour vos sacs personnalisés, instructions particulières..."
+                  title="Ajoutez des instructions spéciales pour votre commande"
                 />
               </div>
             </div>
 
-            {/* Résumé de commande */}
+            {/* === RÉSUMÉ DE COMMANDE AVEC H2 === */}
             <div className="lg:col-span-1">
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border sticky top-8">
-                <h2 className="text-xl font-semibold text-primary mb-6">Résumé</h2>
+                <h2 className="text-xl font-semibold text-primary mb-6 flex items-center">
+                  <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  Récapitulatif de Commande
+                </h2>
                 
                 {/* Produits */}
                 <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
+                  <h3 className="font-semibold text-primary text-sm mb-2">Vos Articles</h3>
                   {cart.items.map((item: any) => (
                     <div key={item.id} className="flex items-center space-x-3 pb-3 border-b border-angel-border">
                       <div className="flex-shrink-0 w-16 h-16 bg-angel-pink rounded-lg overflow-hidden">
                         {item.product.images?.[0] && (
                           <img 
                             src={item.product.images[0]} 
-                            alt={item.product.name}
+                            alt={`${item.product.name} - Sac en perles et cristal Angel's Bags`}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         )}
                       </div>
                       <div className="flex-grow">
                         <div className="font-semibold text-sm text-primary">{item.product.name}</div>
-                        <div className="text-xs text-angel-dark">Qté: {item.quantity}</div>
+                        <div className="text-xs text-angel-dark">Quantité: {item.quantity}</div>
+                        {item.selectedColor && (
+                          <div className="text-xs text-angel-dark">Couleur: {item.selectedColor}</div>
+                        )}
                       </div>
                       <div className="text-sm font-semibold text-primary">
                         {(item.product.price * item.quantity).toFixed(2)} TND
@@ -414,43 +535,48 @@ const Checkout: React.FC = () => {
 
                 {/* Totaux */}
                 <div className="space-y-3 mb-6">
+                  <h3 className="font-semibold text-primary text-sm mb-2">Détails du Prix</h3>
                   <div className="flex justify-between text-angel-dark">
-                    <span>Sous-total</span>
+                    <span>Sous-total produits</span>
                     <span>{getCartTotal().toFixed(2)} TND</span>
                   </div>
                   <div className="flex justify-between text-angel-dark">
-                    <span>Livraison</span>
+                    <span>Frais de livraison</span>
                     <span>{deliveryFee === 0 ? 'Gratuit' : `${deliveryFee.toFixed(2)} TND`}</span>
                   </div>
                   <div className="border-t border-angel-border pt-3 flex justify-between text-lg font-bold text-primary">
-                    <span>Total</span>
+                    <span>Total Final</span>
                     <span className="text-angel-gold">{total.toFixed(2)} TND</span>
                   </div>
                 </div>
 
+                {/* Bouton de soumission */}
                 <button
                   type="submit"
-                  className="w-full bg-angel-gold text-angel-light py-4 rounded-xl hover:bg-primary transition-all font-semibold text-lg shadow-lg hover:shadow-xl"
+                  className="w-full bg-angel-gold text-angel-light py-4 rounded-xl hover:bg-primary transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 duration-300"
+                  title={paymentMethod === 'whatsapp' ? 'Finaliser la commande via WhatsApp' : 
+                         paymentMethod === 'online' ? 'Procéder au paiement en ligne' : 
+                         'Confirmer la commande avec paiement à la livraison'}
                 >
                   {paymentMethod === 'whatsapp' ? 'Commander via WhatsApp' : 
-                   paymentMethod === 'online' ? 'Payer en ligne' : 
-                   'Confirmer la commande'}
+                   paymentMethod === 'online' ? 'Payer en Ligne' : 
+                   'Confirmer la Commande'}
                 </button>
 
-                {/* Sécurité */}
+                {/* Sécurité et garanties */}
                 <div className="mt-6 pt-6 border-t border-angel-border">
-                  <div className="flex items-center justify-center space-x-4 text-angel-dark text-xs">
-                    <div className="flex items-center space-x-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="flex flex-col items-center space-y-1">
+                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
-                      <span>Sécurisé</span>
+                      <span className="text-xs text-angel-dark">Paiement Sécurisé</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex flex-col items-center space-y-1">
+                      <svg className="w-5 h-5 text-angel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
-                      <span>Garanti</span>
+                      <span className="text-xs text-angel-dark">Satisfaction Garantie</span>
                     </div>
                   </div>
                 </div>
