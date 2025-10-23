@@ -77,7 +77,7 @@ const Footer = () => {
             <h2 className="font-bold text-lg mb-6 text-angel-gold">
               Navigation du Site
             </h2>
-            <ul className="space-y-3" role="list" aria-label="Liens de navigation principaux">
+            <ul className="space-y-3"  aria-label="Liens de navigation principaux">
               {[
                 { to: '/', label: 'Accueil - Angel\'s Bags' },
                 { to: '/categories', label: 'Nos Collections' },
@@ -106,7 +106,7 @@ const Footer = () => {
             <h2 className="font-bold text-lg mb-6 text-angel-gold">
               Nos Collections de Sacs
             </h2>
-            <ul className="space-y-3" role="list" aria-label="Collections de sacs Angel's Bags">
+            <ul className="space-y-3" aria-label="Collections de sacs Angel's Bags">
               {[
                 { to: '/categories/sacs-perles', label: 'Sacs en Perles' },
                 { to: '/categories/sacs-cristal', label: 'Sacs en Cristal' },
