@@ -214,26 +214,25 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
           `}
         </script>
         
-        {/* === BALISES SEO OPTIMISÉES === */}
         
         {/* Title unique et descriptif */}
-        <title>Angel's Bags - Sacs en Perles et Cristal Faits Main Tunisie | Personnalisation</title>
+        <title>Angel's Bags - Sacs en Perles et Cristal Faits Main Tunisie</title>
         
         {/* Meta Description optimisée avec mots-clés */}
         <meta 
           name="description" 
-          content="✨ Angel's Bags - Sacs uniques en perles et cristal FAITS MAIN en Tunisie. Personnalisation gratuite ✅ Livraison partout en Tunisie. Sacs soirée, mariée, élégants. Créez le sac de vos rêves !" 
+          content="Angel's Bags : sacs uniques en perles et cristal faits main en Tunisie. Personnalisation gratuite ✅ Livraison partout. Élégance et style garantis !" 
         />
         
         {/* Keywords optimisés */}
         <meta 
           name="keywords" 
-          content="sacs perles, sacs cristal, sacs faits main Tunisie, sacs personnalisés, artisanat tunisien, sacs femme élégants, sacs perles cristal, accessoires luxe, sacs mariée, sacs soirée, sacs main perles, sacs artisanaux Tunisie" 
+          content="sacs perles, sacs cristal, sacs faits main Tunisie, sacs personnalisés, artisanat tunisien, sacs femme élégants, sacs perles cristal, accessoires luxe, sacs soirée, sacs main perles, sacs artisanaux Tunisie" 
         />
         
         {/* Open Graph optimisé */}
-        <meta property="og:title" content="Angel's Bags - Sacs en Perles et Cristal Faits Main Tunisie" />
-        <meta property="og:description" content="Sacs uniques faits main en perles et cristal. Personnalisation gratuite. Livraison partout en Tunisie. Créez votre sac personnalisé !" />
+        <meta property="og:title" content="Angel's Bags - Sacs en Perles et Cristal Handmade Tunisie" />
+        <meta property="og:description" content="Sacs uniques faits main en perles et cristal Personnalisées .Créez votre sac personnalisé !" />
         <meta property="og:url" content="https://angelsbags.netlify.app" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://angelsbags.netlify.app/logo.png" />
@@ -267,14 +266,13 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
         <div className="container mx-auto px-4 text-center">
           {/* H1 Principal unique et riche en mots-clés */}
           <h1 className="font-tan-pearl text-5xl md:text-6xl text-angel-light mb-6">
-            Sacs en Perles et Cristal Faits Main - Angel's Bags Tunisie
+            Sacs en Perles et Cristal Handmade - Angel's Bags Tunisie
           </h1>
           
           {/* Texte riche en mots-clés naturellement intégrés */}
           <p className="text-xl text-angel-light opacity-90 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Découvrez nos <strong>sacs uniques en perles et cristal faits main en Tunisie</strong>. 
+            Découvrez nos sacs uniques en perles et cristal faits main en Tunisie. 
             Chaque sac est une œuvre d'artisanat exceptionnelle, <strong>personnalisable selon vos envies</strong>. 
-            Parfait pour <strong>mariages, soirées et occasions spéciales</strong>.
           </p>
           
           <Link 
@@ -292,15 +290,15 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
         <div className="container mx-auto px-4">
           {/* H2 optimisé pour les catégories */}
           <h2 className="font-tan-pearl text-4xl text-center text-primary mb-8">
-            Nos Catégories de Sacs en Perles et Cristal
+            Nos Catégories
           </h2>
           
           {/* Texte introductif riche en mots-clés */}
           <div className="text-center max-w-3xl mx-auto mb-12">
             <p className="text-angel-dark text-lg leading-relaxed">
-              Explorez notre collection exclusive de <strong>sacs faits main en perles et cristaux</strong>. 
-              De <strong>sacs soirée élégants</strong> aux <strong>sacs mariée romantiques</strong>, 
-              chaque catégorie propose des créations uniques <strong>confectionnées artisanalement en Tunisie</strong>.
+              Explorez notre collection exclusive de sacs faits main en perles et cristaux. 
+              De sacs soirée élégants aux sacs mariée romantiques, 
+              chaque catégorie propose des créations uniques confectionnées artisanalement en Tunisie.
             </p>
           </div>
 
@@ -317,7 +315,7 @@ const Home: React.FC<HomeProps> = ({ categories, featuredProducts }) => {
         <div className="container mx-auto px-4">
           {/* H2 pour les produits vedettes */}
           <h2 className="font-tan-pearl text-4xl text-center text-primary mb-8">
-            Nos Sacs Vedettes en Perles et Cristal
+            Nos Sacs en Perles et Cristal
           </h2>
           
           {/* Texte descriptif riche en SEO */}
