@@ -1,8 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import logo from "../images/logo.png";
 
 const MobileMenu = ({ isOpen, onClose, currentPath }) => {
+  const { user, isSignedIn } = useUser();
+  const clerk = useClerk();
+
+  // Récupérer le nom d'utilisateur ou email
+  const getUserDisplayName = () => {
+    if (!user) return 'Utilisateur';
+    
+    return user.username || 
+           user.fullName || 
+           user.primaryEmailAddress?.emailAddress || 
+           'Utilisateur';
+  };
+
+  // Récupérer l'email principal
+  const getUserEmail = () => {
+    return user?.primaryEmailAddress?.emailAddress || '';
+  };
+
+  const displayName = getUserDisplayName();
+  const userEmail = getUserEmail();
+  const isAdmin = user?.publicMetadata?.role === 'admin';
+
+  const handleSignOut = async () => {
+    await clerk.signOut();
+    onClose();
+    window.location.href = '/';
+  };
+
   const menuItems = [
     { 
       path: '/', 
@@ -41,6 +70,16 @@ const MobileMenu = ({ isOpen, onClose, currentPath }) => {
       title: 'Voir le contenu de mon panier Angel\'s Bags'
     }
   ];
+
+  // Ajouter le lien admin si l'utilisateur est admin
+  if (isAdmin) {
+    menuItems.push({
+      path: '/admin',
+      label: 'Administration',
+      icon: '🛠️',
+      title: 'Accéder au tableau de bord administrateur'
+    });
+  }
 
   if (!isOpen) return null;
 
@@ -106,6 +145,32 @@ const MobileMenu = ({ isOpen, onClose, currentPath }) => {
               </svg>
             </button>
           </div>
+
+          {/* Section informations utilisateur connecté */}
+          {isSignedIn && (
+            <div className="bg-angel-background rounded-lg p-3 border border-angel-border">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-angel-gold rounded-full flex items-center justify-center text-white text-sm">
+                  👤
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-angel-dark truncate">
+                    {displayName}
+                  </div>
+                  {userEmail && (
+                    <div className="text-xs text-angel-gold truncate">
+                      {userEmail}
+                    </div>
+                  )}
+                  {isAdmin && (
+                    <div className="text-xs text-purple-600 font-medium mt-1">
+                      ● Administrateur
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation principale avec structure sémantique */}
@@ -167,31 +232,75 @@ const MobileMenu = ({ isOpen, onClose, currentPath }) => {
 
         {/* Boutons d'action secondaires */}
         <div className="p-4 space-y-3">
-          <Link
-            to="/login"
-            onClick={onClose}
-            className="flex items-center justify-center space-x-2 w-full bg-angel-dark text-white py-3 rounded-xl font-semibold hover:bg-angel-gold transition-all shadow-md hover:shadow-lg"
-            title="Se connecter à mon compte Angel's Bags"
-            role="button"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            <span>Espace Client</span>
-          </Link>
-          
-          <Link
-            to="/products"
-            onClick={onClose}
-            className="flex items-center justify-center space-x-2 w-full border-2 border-angel-gold text-angel-gold py-3 rounded-xl font-semibold hover:bg-angel-gold hover:text-white transition-all"
-            title="Découvrir nos nouvelles collections de sacs"
-            role="button"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span>Nouveautés</span>
-          </Link>
+          {isSignedIn ? (
+            <>
+              <Link
+                to="/profile"
+                onClick={onClose}
+                className="flex items-center justify-center space-x-2 w-full bg-angel-dark text-white py-3 rounded-xl font-semibold hover:bg-angel-gold transition-all shadow-md hover:shadow-lg"
+                title="Gérer mon profil Angel's Bags"
+                role="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Mon Profil</span>
+              </Link>
+
+              <Link
+                to="/orders"
+                onClick={onClose}
+                className="flex items-center justify-center space-x-2 w-full border-2 border-angel-gold text-angel-gold py-3 rounded-xl font-semibold hover:bg-angel-gold hover:text-white transition-all"
+                title="Voir mes commandes Angel's Bags"
+                role="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                <span>Mes Commandes</span>
+              </Link>
+
+              <button
+                onClick={handleSignOut}
+                className="flex items-center justify-center space-x-2 w-full border-2 border-red-600 text-red-600 py-3 rounded-xl font-semibold hover:bg-red-600 hover:text-white transition-all"
+                title="Se déconnecter de mon compte"
+                role="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Déconnexion</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                onClick={onClose}
+                className="flex items-center justify-center space-x-2 w-full bg-angel-dark text-white py-3 rounded-xl font-semibold hover:bg-angel-gold transition-all shadow-md hover:shadow-lg"
+                title="Se connecter à mon compte Angel's Bags"
+                role="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Espace Client</span>
+              </Link>
+              
+              <Link
+                to="/products"
+                onClick={onClose}
+                className="flex items-center justify-center space-x-2 w-full border-2 border-angel-gold text-angel-gold py-3 rounded-xl font-semibold hover:bg-angel-gold hover:text-white transition-all"
+                title="Découvrir nos nouvelles collections de sacs"
+                role="button"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>Nouveautés</span>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Informations de contact rapide */}

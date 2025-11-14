@@ -7,7 +7,7 @@ const OrderSuccess: React.FC = () => {
     <>
       {/* === BALISES SEO OPTIMISÉES === */}
       <Helmet>
-        <title>Commande Confirmée - Merci pour votre achat | Angel's Bags</title>
+        <title>{`Commande Confirmée - Merci pour votre achat | Angel's Bags`}</title>
         
         <meta 
           name="description" 

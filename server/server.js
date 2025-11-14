@@ -3,15 +3,22 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+// 🆕 IMPORT du rate limiting
+const { generalLimiter } = require('./middleware/rateLimiter');
+
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// 🆕 APPLIQUER le rate limiting GLOBAL à toutes les routes API
+app.use('/api', generalLimiter); // ✅ DOIT ÊTRE AVANT les routes
+
 // Import des routes
 const categoryRoutes = require('./routes/categories');
 const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders'); 
 
 // Route de base pour tester
 app.get('/', (req, res) => {
@@ -23,14 +30,16 @@ app.get('/', (req, res) => {
       categories: '/api/categories',
       products: '/api/products', 
       product_by_id: '/api/products/:id',
-      category_by_slug: '/api/categories/slug/:slug'
+      category_by_slug: '/api/categories/slug/:slug',
+      orders: '/api/orders' 
     }
   });
 });
 
-// Utilisation des routes
+// Utilisation des routes (APRÈS le rate limiting)
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes); 
 
 // Middleware 404 pour les routes API non trouvées
 app.use('/api', (req, res) => {
@@ -43,7 +52,8 @@ app.use('/api', (req, res) => {
       category_by_id: '/api/categories/:id',
       category_by_slug: '/api/categories/slug/:slug',
       products: '/api/products',
-      product_by_id: '/api/products/:id'
+      product_by_id: '/api/products/:id',
+      orders: '/api/orders' 
     }
   });
 });
@@ -53,7 +63,12 @@ app.use((req, res) => {
   res.json({ 
     message: 'Serveur Angels_Bags fonctionne! 🚀',
     database: 'MongoDB Atlas (Cloud)',
-    api: 'Utilisez les routes /api/* pour accéder à l\'API'
+    api: 'Utilisez les routes /api/* pour accéder à l\'API',
+    availableEndpoints: {
+      categories: '/api/categories',
+      products: '/api/products',
+      orders: '/api/orders' 
+    }
   });
 });
 
@@ -81,6 +96,10 @@ mongoose.connect(MONGODB_URI)
       console.log('📡 Port:', PORT);
       console.log('🌐 URL: http://localhost:' + PORT);
       console.log('💾 Base de données: MongoDB Atlas');
+      console.log('📦 Endpoints disponibles:');
+      console.log('   📁 /api/categories');
+      console.log('   🛍️  /api/products');
+      console.log('   📋 /api/orders');
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     });
   })

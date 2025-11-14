@@ -1,22 +1,24 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
+// src/App.tsx
+import React, { lazy, Suspense, useEffect, useState, createContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { SignUp, SignIn , useUser } from '@clerk/clerk-react';
 import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
-import Footer from './components/Footer'; 
-import Home from './pages/Home';
-import { Category, Product } from './types';
+import AdminHeader from './components/AdminHeader';
+import Footer from './components/Footer';
 import { apiService } from './services/apiService';
-
-// Lazy loading des pages non critiques
-const Categories = lazy(() => import('./pages/Categories'));
-const Products = lazy(() => import('./pages/Products'));
-const ProductDetail = lazy(() => import('./pages/ProductDetail'));
-const Cart = lazy(() => import('./pages/Cart'));
-const Checkout = lazy(() => import('./pages/checkout'));
-const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
-const Register = lazy(() => import('./pages/Register'));
-
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://angels-bags-1.onrender.com/api';
+import { Category, Product } from './types';
+import { AdminRoute } from './routes/AdminRoute';
+import { UserRoute } from './routes/UserRoute';
+import AuthRedirect from './components/AuthRedirect'; 
+import AdminCategories from './pages/admin/AdminCategories';
+import AdminOrders from './pages/admin/AdminOrders';
+import AdminProducts from './pages/admin/AdminProducts';
+import AdminUsers from './pages/admin/AdminUsers';
+import { useAuth } from "@clerk/clerk-react";
+// --- AppContext.ts ---
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const AdminHome = lazy(() => import('./pages/admin/AdminHome'));
 
 interface AppContextType {
   categories: Category[];
@@ -25,45 +27,85 @@ interface AppContextType {
   error: string | null;
 }
 
-export const AppContext = React.createContext<AppContextType>({
+
+export const ShowJWT: React.FC = () => {
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const token = await getToken();
+        console.log("JWT Clerk:", token); // 👈 tu verras le token dans la console
+      } catch (err) {
+        console.error("Erreur récupération token :", err);
+      }
+    };
+    fetchToken();
+  }, [getToken]);
+
+  return null; // pas besoin de rendu
+};
+
+
+
+
+export const AppContext = createContext<AppContextType>({
   categories: [],
   featuredProducts: [],
   loading: true,
   error: null,
 });
 
-// Composant pour scroller en haut à chaque changement de page
-const ScrollToTop = () => {
+// --- Lazy pages ---
+const Home = lazy(() => import('./pages/Home'));
+const Categories = lazy(() => import('./pages/Categories'));
+const Products = lazy(() => import('./pages/Products'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Checkout = lazy(() => import('./pages/checkout'));
+const OrderSuccess = lazy(() => import('./pages/OrderSuccess'));
+const Orders =lazy(() => import('./pages/Orders'));
+// --- ScrollToTop ---
+const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
-
   return null;
 };
 
-// Composant de chargement réutilisable
+// --- LoadingSpinner ---
 const LoadingSpinner: React.FC = () => (
-  <div className="min-h-screen bg-angel-background flex flex-col items-center justify-center">
-    {/* Google tag (gtag.js) */}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
-    <script>
-      {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-393HMHQQSE');
-      `}
-    </script>
-    
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-4 border-angel-border border-t-angel-gold mx-auto mb-4"></div>
-      <h2 className="text-xl font-semibold text-primary mb-2">Chargement...</h2>
-    </div>
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
   </div>
 );
 
+// Composant pour gérer dynamiquement le header
+// Dans App.tsx - Composant DynamicHeader modifié
+const DynamicHeader = () => {
+  const location = useLocation();
+  const { user, isLoaded } = useUser(); // 👈 Ajouter useUser
+  
+  const isAdminPage = location.pathname.startsWith('/admin');
+  
+  // Ne montrer AdminHeader que si l'utilisateur est admin ET sur une page admin
+  if (isAdminPage && isLoaded && user?.publicMetadata?.role === 'admin') {
+    return <AdminHeader />;
+  }
+  
+  // Sinon, montrer le Header normal
+  return <Header />;
+};
+// Composant pour gérer dynamiquement le footer
+const DynamicFooter = () => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+  
+  return isAdminPage ? null : <Footer />;
+};
+
+// --- App ---
 function App() {
   const [appData, setAppData] = useState<AppContextType>({
     categories: [],
@@ -75,152 +117,137 @@ function App() {
   useEffect(() => {
     const fetchAppData = async () => {
       try {
-        console.log('🔄 Chargement des données depuis l\'API...');
-        console.log('📍 URL API:', API_BASE_URL);
-        
-        // Charger seulement les données critiques pour la page d'accueil
         const [categories, products] = await Promise.all([
           apiService.getCategories(),
-          // Limiter le nombre de produits chargés initialement
-          apiService.getProducts().then(prods => 
-            prods.filter((p: Product) => p.featured).slice(0, 6)
-          )
+          apiService.getProducts().then((prods: Product[]) => prods.filter((p: Product) => p.featured).slice(0, 6)),
         ]);
-
-        setAppData({
-          categories,
-          featuredProducts: products,
-          loading: false,
-          error: null,
-        });
-
-        console.log('✅ Données chargées avec succès:', {
-          categories: categories.length,
-          featured: products.length
-        });
-
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des données:', error);
-        setAppData(prev => ({
-          ...prev,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Erreur de connexion au serveur'
-        }));
+        setAppData({ categories, featuredProducts: products, loading: false, error: null });
+      } catch (err) {
+        setAppData(prev => ({ ...prev, loading: false, error: (err as Error).message }));
       }
     };
-
     fetchAppData();
   }, []);
 
-  // Composant d'erreur
-  if (appData.error) {
-    return (
-      <>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
-        <script>
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-393HMHQQSE');
-          `}
-        </script>
-        
-        <div className="min-h-screen bg-angel-background flex flex-col items-center justify-center">
-          <div className="text-center max-w-md mx-auto p-6">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-semibold text-primary mb-4">Erreur de connexion</h2>
-            <p className="text-angel-dark mb-4">{appData.error}</p>
-            <div className="bg-angel-card p-4 rounded-lg border border-angel-border text-sm text-left">
-              <p className="mb-2"><strong>Vérifiez que :</strong></p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Le serveur backend est démarré</li>
-                <li>L'URL de l'API est correcte</li>
-                <li>MongoDB Atlas est connecté</li>
-              </ul>
-            </div>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-6 bg-angel-gold text-white px-6 py-2 rounded-lg hover:bg-primary transition-all"
-            >
-              Réessayer
-            </button>
-          </div>
-        </div>
-      </>
-    );
-  }
-
   return (
-    <>
-      {/* Google tag (gtag.js) - Version optimale dans l'App principal */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
-      <script>
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-393HMHQQSE');
-        `}
-      </script>
-      
-      <AppContext.Provider value={appData}>
-        <CartProvider>
-          <Router>
-            <ScrollToTop />
-            <div className="min-h-screen bg-white flex flex-col">
-              <Header />
-              <main className="flex-grow">
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Routes>
-                    <Route 
-                      path="/" 
-                      element={
-                        appData.loading ? (
-                          <LoadingSpinner />
-                        ) : (
-                          <Home 
-                            categories={appData.categories}
-                            featuredProducts={appData.featuredProducts}
-                          />
-                        )
-                      } 
-                    />
-                    <Route path="/categories" element={<Categories />} />
-                    <Route path="/categories/:slug" element={<Categories />} />
-                    <Route path="/products" element={<Products />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/order-success" element={<OrderSuccess />} />
-                    
-                    {/* Pages statiques optimisées */}
-                    <Route 
-                      path="/about" 
-                      element={<AboutPage />}
-                    />
-                    <Route 
-                      path="/contact" 
-                      element={<ContactPage />}
-                    />
-                    <Route 
-                      path="/login" 
-                      element={<LoginPage />}
-                    />
-                  </Routes>
-                </Suspense>
-              </main>
-              <Footer /> 
-            </div>
-          </Router>
-        </CartProvider>
-      </AppContext.Provider>
-    </>
+    <AppContext.Provider value={appData}>
+      <CartProvider>
+        <Router>
+            <AuthRedirect />
+          <ScrollToTop />
+          <div className="min-h-screen flex flex-col bg-white">
+            {/* Header dynamique */}
+            <DynamicHeader />
+            
+            <main className="flex-grow">
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
+                  {/* Routes publiques */}
+                  <Route
+                    path="/"
+                    element={<Home categories={appData.categories} featuredProducts={appData.featuredProducts} />}
+                  />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/categories/:slug" element={<Categories />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+
+                  {/* Routes d'authentification */}
+                  <Route path="/register/*" element={
+                    <div className="flex justify-center items-center min-h-[80vh] py-8">
+                      <SignUp 
+                        routing="path" 
+                        path="/register" 
+                        afterSignUpUrl="/auth-redirect" 
+                        signInUrl="/login"
+                      />
+                    </div>
+                  } />
+                  
+                  <Route path="/login/*" element={
+                    <div className="flex justify-center items-center min-h-[80vh] py-8">
+                      <SignIn 
+                        routing="path" 
+                        path="/login" 
+                        afterSignUpUrl="/auth-redirect" 
+                        signUpUrl="/register"
+                      />
+                    </div>
+                  } />
+
+                  {/* Route de redirection après auth */}
+                  <Route path="/auth-redirect" element={<AuthRedirect />} />
+
+                  {/* Route admin protégée */}
+                  <Route path="/admin/*" element={
+                    <AdminRoute>
+                      <AdminHome />
+                    </AdminRoute>
+                  } />
+              
+<Route path="/admin/products" element={
+  <AdminRoute>
+    <AdminProducts />
+  </AdminRoute>
+} />
+<Route path="/admin/categories" element={
+  <AdminRoute>
+    <AdminCategories />
+  </AdminRoute>
+} />
+<Route path="/admin/orders" element={
+  <AdminRoute>
+    <AdminOrders />
+  </AdminRoute>
+} />
+<Route path="/admin/users" element={
+  <AdminRoute>
+    <AdminUsers />
+  </AdminRoute>
+} />
+
+                  {/* Routes utilisateur protégées */}
+                  <Route path="/profile" element={
+                    <UserRoute>
+                      <div className="min-h-[60vh] flex items-center justify-center">
+                        <div className="text-center">
+                          <h1 className="text-3xl font-bold text-gray-900 mb-4">Mon Profil</h1>
+                          <p className="text-gray-600">Page de profil utilisateur</p>
+                        </div>
+                      </div>
+                    </UserRoute>
+                  } />
+<Route path="/orders" element={
+  <UserRoute>
+    <Orders />
+  </UserRoute>
+} />
+                  {/* Route 404 */}
+                  <Route path="*" element={
+                    <div className="min-h-[60vh] flex items-center justify-center">
+                      <div className="text-center">
+                        <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                        <p className="text-xl text-gray-600">Page non trouvée</p>
+                      </div>
+                    </div>
+                  } />
+                </Routes>
+              </Suspense>
+            </main>
+            
+            {/* Footer dynamique */}
+            <DynamicFooter />
+          </div>
+        </Router>
+      </CartProvider>
+    </AppContext.Provider>
   );
 }
-
 // Composants de pages statiques séparés pour une meilleure organisation
 const AboutPage: React.FC = () => (
   <>
@@ -351,61 +378,6 @@ const ContactPage: React.FC = () => (
                 <span className="text-primary font-medium">{item.text}</span>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-);
-
-const LoginPage: React.FC = () => (
-  <>
-    {/* Google tag (gtag.js) */}
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-393HMHQQSE"></script>
-    <script>
-      {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-393HMHQQSE');
-      `}
-    </script>
-    
-    <div className="min-h-screen py-16 bg-angel-background">
-      <div className="container mx-auto px-4">
-        <h1 className="font-tan-pearl text-4xl text-center text-primary mb-8">Connexion</h1>
-        <div className="max-w-md mx-auto bg-angel-card rounded-2xl shadow-sm p-8 border border-angel-border">
-          <form className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-primary mb-2">Email</label>
-              <input 
-                type="email" 
-                className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold focus:border-angel-gold transition-all bg-white"
-                placeholder="votre@email.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-primary mb-2">Mot de passe</label>
-              <input 
-                type="password" 
-                className="w-full px-4 py-3 border border-angel-border rounded-xl focus:outline-none focus:ring-2 focus:ring-angel-gold focus:border-angel-gold transition-all bg-white"
-                placeholder="Votre mot de passe"
-              />
-            </div>
-            <button 
-              type="submit"
-              className="w-full bg-angel-gold text-white py-3 rounded-xl hover:bg-primary transition-all font-semibold"
-            >
-              Se connecter
-            </button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-angel-dark text-sm">
-              Pas de compte ?{' '}
-              <a href="/register" className="text-angel-gold hover:underline font-semibold">
-                Créer un compte
-              </a>
-            </p>
           </div>
         </div>
       </div>

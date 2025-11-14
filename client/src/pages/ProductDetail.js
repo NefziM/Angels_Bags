@@ -174,17 +174,6 @@ const ProductDetail = () => {
           name="keywords" 
           content={`${product.name}, sac perles, sac cristal, ${product.category?.name}, sac fait main Tunisie, sac luxe, sac mariée, personnalisation sac, Angel's Bags ${product.name.toLowerCase()}`} 
         />
-        
-        <meta property="og:title" content={`${product.name} - Sac en Perles et Cristal | Angel's Bags`} />
-        <meta property="og:description" content={product.description} />
-        <meta property="og:url" content={`https://angelsbags.netlify.app/product/${product._id}`} />
-        <meta property="og:type" content="product" />
-        <meta property="og:image" content={product.images?.[0] || "https://angelsbags.netlify.app/logo.png"} />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${product.name} - Angel's Bags`} />
-        <meta name="twitter:description" content={product.description} />
-        
         <link rel="canonical" href={`https://angelsbags.netlify.app/product/${product._id}`} />
       </Helmet>
 

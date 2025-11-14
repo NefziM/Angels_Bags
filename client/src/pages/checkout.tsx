@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Helmet } from 'react-helmet';
+import { useUser } from '@clerk/clerk-react';
 
 type DeliveryMethod = 'delivery' | 'pickup';
 type PaymentMethod = 'whatsapp' | 'online' | 'cash';
-// En haut de ton fichier, avant ton composant
+
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
   }
 }
-
 
 interface FormData {
   fullName: string;
@@ -22,6 +22,8 @@ interface FormData {
   postalCode: string;
   notes: string;
 }
+
+// CORRECTION : Ajout de _id dans l'interface
 interface CartItem {
   id: string;
   quantity: number;
@@ -30,6 +32,7 @@ interface CartItem {
   personalization?: string;
   product: {
     id: string;
+    _id?: string; // ✅ Ajout de _id optionnel
     name: string;
     price: number;
     images?: string[];
@@ -38,19 +41,20 @@ interface CartItem {
 
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isSignedIn } = useUser();
   
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('whatsapp');
   const { cart, getCartTotal, clearCart } = useCart() as {
-  cart: { items: CartItem[] };
-  getCartTotal: () => number;
-  clearCart: () => void;
-};
+    cart: { items: CartItem[] };
+    getCartTotal: () => number;
+    clearCart: () => void;
+  };
 
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     phone: '',
-    email: '',
+    email: user?.primaryEmailAddress?.emailAddress || '',
     address: '',
     city: '',
     postalCode: '',
@@ -60,6 +64,13 @@ const Checkout: React.FC = () => {
   const deliveryFee = deliveryMethod === 'delivery' ? 7 : 0;
   const total = getCartTotal() + deliveryFee;
 
+  // Rediriger vers login si non connecté
+  React.useEffect(() => {
+    if (!isSignedIn) {
+      navigate('/login?redirect=checkout');
+    }
+  }, [isSignedIn, navigate]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
@@ -67,11 +78,39 @@ const Checkout: React.FC = () => {
     });
   };
 
+  // Fonction pour sauvegarder la commande dans MongoDB
+  const saveOrderToMongoDB = async (orderData: any) => {
+    try {
+      console.log('📦 Données envoyées à MongoDB:', JSON.stringify(orderData, null, 2));
+      
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la sauvegarde de la commande');
+      }
+
+      const result = await response.json();
+      console.log('✅ Commande sauvegardée:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Erreur sauvegarde commande:', error);
+      throw error;
+    }
+  };
+
   const formatWhatsAppMessage = () => {
     let message = `🛍️ *NOUVELLE COMMANDE - Angel's Bags*\n\n`;
     message += `👤 *Client:* ${formData.fullName}\n`;
     message += `📱 *Téléphone:* ${formData.phone}\n`;
-    message += `📧 *Email:* ${formData.email}\n\n`;
+    message += `📧 *Email:* ${formData.email}\n`;
+    message += `🆔 *ID Client:* ${user?.id || 'Non connecté'}\n\n`;
     
     message += `📦 *Mode de livraison:* ${deliveryMethod === 'delivery' ? 'Livraison à domicile' : 'Retrait en magasin'}\n`;
     
@@ -87,7 +126,7 @@ const Checkout: React.FC = () => {
     else message += 'Paiement à la livraison';
     
     message += `\n\n🛒 *PRODUITS:*\n`;
-    cart.items.forEach((item: any, index: number) => {
+    cart.items.forEach((item: CartItem, index: number) => {
       message += `\n${index + 1}. *${item.product.name}*\n`;
       message += `   Quantité: ${item.quantity}\n`;
       message += `   Prix unitaire: ${item.product.price} TND\n`;
@@ -109,58 +148,136 @@ const Checkout: React.FC = () => {
     return encodeURIComponent(message);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
+  // CORRECTION : Gestion améliorée du productId
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // Validation
-  if (!formData.fullName || !formData.phone) {
-    alert('Veuillez remplir les champs obligatoires');
-    return;
+    if (!isSignedIn || !user) {
+      alert('Veuillez vous connecter pour finaliser votre commande');
+      navigate('/login?redirect=checkout');
+      return;
+    }
+
+    // Validation
+    if (!formData.fullName || !formData.phone) {
+      alert('Veuillez remplir les champs obligatoires');
+      return;
+    }
+    
+    if (deliveryMethod === 'delivery' && (!formData.address || !formData.city)) {
+      alert('Veuillez remplir l\'adresse de livraison');
+      return;
+    }
+
+    console.log('🛒 Items du panier:', cart.items);
+    
+    // Préparer les données de la commande pour MongoDB
+    const orderData = {
+      userId: user.id,
+      userEmail: user.primaryEmailAddress?.emailAddress || formData.email,
+      customerInfo: {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        email: formData.email || user.primaryEmailAddress?.emailAddress || '',
+      },
+      deliveryInfo: {
+        method: deliveryMethod,
+        address: deliveryMethod === 'delivery' ? {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+        } : null,
+      },
+      paymentInfo: {
+        method: paymentMethod,
+        total: total,
+        currency: 'TND'
+      },
+      items: cart.items.map(item => {
+        // ✅ CORRECTION : Gestion robuste du productId
+        const productId = item.product.id || item.product._id || `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        console.log('📦 Item transformé:', {
+          original: item,
+          productId: productId,
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          subtotal: item.product.price * item.quantity
+        });
+        
+        return {
+          productId: productId,
+          productName: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+          selectedColor: item.selectedColor,
+          selectedSize: item.selectedSize,
+          personalization: item.personalization,
+          subtotal: item.product.price * item.quantity
+        };
+      }),
+      status: 'pending',
+      notes: formData.notes
+    };
+
+    console.log('📤 Données à envoyer à MongoDB:', orderData);
+
+    // Google Analytics
+    if (window.gtag) {
+      window.gtag('event', 'purchase_attempt', {
+        method: paymentMethod,
+        value: total,
+        currency: 'TND',
+        items: cart.items.map((item) => ({
+          item_name: item.product.name,
+          item_id: item.product.id,
+          price: item.product.price,
+          quantity: item.quantity
+        }))
+      });
+    }
+
+    try {
+      // Sauvegarder la commande dans MongoDB
+      const savedOrder = await saveOrderToMongoDB(orderData);
+      
+      // Traitement commande
+      if (paymentMethod === 'whatsapp') {
+        const whatsappNumber = '21646535386';
+        const message = formatWhatsAppMessage();
+        window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+        setTimeout(() => {
+          clearCart();
+          navigate('/order-success');
+        }, 2000);
+      } else if (paymentMethod === 'online') {
+        alert('Le paiement en ligne sera disponible prochainement !');
+      } else {
+        const whatsappNumber = '21646535386';
+        const message = formatWhatsAppMessage();
+        window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+        setTimeout(() => {
+          clearCart();
+          navigate('/order-success');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Erreur lors du traitement de la commande:', error);
+      alert('Une erreur est survenue lors du traitement de votre commande. Veuillez réessayer.');
+    }
+  };
+
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen bg-angel-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-angel-gold border-t-transparent mx-auto mb-4"></div>
+          <p className="text-angel-dark">Vérification de connexion...</p>
+        </div>
+      </div>
+    );
   }
-  
-  if (deliveryMethod === 'delivery' && (!formData.address || !formData.city)) {
-    alert('Veuillez remplir l\'adresse de livraison');
-    return;
-  }
-
-  // --- EVENT GOOGLE ANALYTICS ---
-  if (window.gtag) {
-  window.gtag('event', 'purchase_attempt', {
-    method: paymentMethod, // whatsapp, cash, online
-    value: total,
-    currency: 'TND',
-    items: cart.items.map((item) => ({
-      item_name: item.product.name,
-      item_id: item.product.id,
-      price: item.product.price,
-      quantity: item.quantity
-    }))
-  });
-}
-
-
-  // Traitement commande
-  if (paymentMethod === 'whatsapp') {
-    const whatsappNumber = '21646535386';
-    const message = formatWhatsAppMessage();
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-    setTimeout(() => {
-      clearCart();
-      navigate('/order-success');
-    }, 2000);
-  } else if (paymentMethod === 'online') {
-    alert('Le paiement en ligne sera disponible prochainement !');
-  } else {
-    const whatsappNumber = '21646535386';
-    const message = formatWhatsAppMessage();
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
-    setTimeout(() => {
-      clearCart();
-      navigate('/order-success');
-    }, 2000);
-  }
-};
-
 
   if (cart.items.length === 0) {
     navigate('/cart');
@@ -169,32 +286,25 @@ const Checkout: React.FC = () => {
 
   return (
     <>
-      {/* === BALISES SEO OPTIMISÉES === */}
       <Helmet>
-        <title>Finaliser Commande - Paiement Sécurisé | Angel's Bags</title>
-        
+        <title>{`Finaliser Commande - Paiement Sécurisé | Angel's Bags`}</title>
         <meta 
           name="description" 
           content="🛒 Finalisez votre commande de sacs en perles et cristal faits main. Livraison Tunisie, paiement WhatsApp sécurisé. Processus simple et rapide pour vos sacs Angel's Bags." 
         />
-        
         <meta 
           name="keywords" 
           content="commander sacs perles, paiement Angel's Bags, checkout sacs cristal, livraison Tunisie, WhatsApp paiement, sacs faits main commande, finaliser achat Angel's Bags" 
         />
-        
         <meta property="og:title" content="Finaliser Votre Commande - Angel's Bags" />
         <meta property="og:description" content="Finalisez votre commande de sacs en perles et cristal faits main. Paiement sécurisé et livraison en Tunisie." />
         <meta property="og:url" content="https://angelsbags.netlify.app/checkout" />
         <meta property="og:type" content="website" />
-        
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Finaliser Commande - Angel's Bags" />
         <meta name="twitter:description" content="Passez commande de vos sacs en perles et cristal faits main" />
-        
         <link rel="canonical" href="https://angelsbags.netlify.app/checkout" />
         
-        {/* Schema.org pour CheckoutPage */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -212,7 +322,6 @@ const Checkout: React.FC = () => {
 
       <div className="min-h-screen bg-angel-background py-8">
         <div className="container mx-auto px-4">
-          {/* === H1 OPTIMISÉ === */}
           <h1 className="font-tan-pearl text-4xl text-primary mb-2">
             Finaliser Votre Commande
           </h1>
@@ -221,11 +330,25 @@ const Checkout: React.FC = () => {
             Processus sécurisé et confirmation rapide par WhatsApp.
           </p>
           
+          <div className="bg-green-50 rounded-xl p-4 mb-6 border border-green-200">
+            <div className="flex items-center space-x-3">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <div>
+                <p className="text-sm text-green-800 font-medium">
+                  Connecté en tant que: {user.primaryEmailAddress?.emailAddress}
+                </p>
+                <p className="text-xs text-green-600">
+                  Votre commande sera associée à votre compte
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* === FORMULAIRE PRINCIPAL === */}
             <div className="lg:col-span-2 space-y-6">
               
-              {/* === INFORMATIONS PERSONNELLES AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
                 <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
                   <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,7 +387,7 @@ const Checkout: React.FC = () => {
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold text-primary mb-2">
-                      Email (optionnel)
+                      Email
                     </label>
                     <input
                       type="email"
@@ -278,7 +401,6 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* === MODE DE LIVRAISON AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
                 <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
                   <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -400,7 +522,6 @@ const Checkout: React.FC = () => {
                 )}
               </div>
 
-              {/* === MODE DE PAIEMENT AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
                 <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
                   <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -474,7 +595,6 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
 
-              {/* === NOTES AVEC H2 === */}
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border">
                 <h2 className="text-xl font-semibold text-primary mb-4 flex items-center">
                   <svg className="w-6 h-6 text-angel-gold mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -494,7 +614,6 @@ const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* === RÉSUMÉ DE COMMANDE AVEC H2 === */}
             <div className="lg:col-span-1">
               <div className="bg-angel-card rounded-2xl shadow-sm p-6 border border-angel-border sticky top-8">
                 <h2 className="text-xl font-semibold text-primary mb-6 flex items-center">
@@ -504,10 +623,9 @@ const Checkout: React.FC = () => {
                   Récapitulatif de Commande
                 </h2>
                 
-                {/* Produits */}
                 <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
                   <h3 className="font-semibold text-primary text-sm mb-2">Vos Articles</h3>
-                  {cart.items.map((item: any) => (
+                  {cart.items.map((item: CartItem) => (
                     <div key={item.id} className="flex items-center space-x-3 pb-3 border-b border-angel-border">
                       <div className="flex-shrink-0 w-16 h-16 bg-angel-pink rounded-lg overflow-hidden">
                         {item.product.images?.[0] && (
@@ -533,7 +651,6 @@ const Checkout: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Totaux */}
                 <div className="space-y-3 mb-6">
                   <h3 className="font-semibold text-primary text-sm mb-2">Détails du Prix</h3>
                   <div className="flex justify-between text-angel-dark">
@@ -550,7 +667,6 @@ const Checkout: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Bouton de soumission */}
                 <button
                   type="submit"
                   className="w-full bg-angel-gold text-angel-light py-4 rounded-xl hover:bg-primary transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 duration-300"
@@ -563,7 +679,6 @@ const Checkout: React.FC = () => {
                    'Confirmer la Commande'}
                 </button>
 
-                {/* Sécurité et garanties */}
                 <div className="mt-6 pt-6 border-t border-angel-border">
                   <div className="grid grid-cols-2 gap-4 text-center">
                     <div className="flex flex-col items-center space-y-1">

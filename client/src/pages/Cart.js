@@ -31,7 +31,7 @@ const Cart = () => {
     return (
       <>
         <Helmet>
-          <title>Panier Vide - Découvrez Nos Sacs en Perles et Cristal | Angel's Bags</title>
+          <title>{`Panier Vide - Découvrez Nos Sacs en Perles et Cristal | Angel's Bags`}</title>
           <meta 
             name="description" 
             content="🛒 Votre panier est vide. Découvrez notre collection exclusive de sacs en perles et cristal faits main. Personnalisation gratuite. Livraison Tunisie." 
@@ -74,7 +74,7 @@ const Cart = () => {
     <>
       <Helmet>
         {/* === BALISES SEO OPTIMISÉES === */}
-        <title>Mon Panier - {cart.items.length} Article(s) | Angel's Bags</title>
+        <title>{`Mon Panier - ${cart.items.length} Article(s) | Angel's Bags`}</title>
         
         <meta 
           name="description" 
